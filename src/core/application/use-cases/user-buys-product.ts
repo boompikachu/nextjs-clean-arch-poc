@@ -2,26 +2,26 @@ import { Product } from "@/core/domain/entities/product";
 import { User } from "@/core/domain/entities/user";
 import { makePriceSatang } from "@/core/shared-kernel/types/branded-alias";
 import { PaymentService } from "../ports/payment-service";
-import { usePayment } from "@/services/payment-adapter";
+import { usePaymentAdapter } from "@/services/payment-adapter";
 
 interface Dependencies {
   payment: PaymentService;
 }
 
-export function userBuysProduct(
+export async function userBuysProduct(
   user: User,
   product: Product,
   dependencies: Dependencies
 ) {
   const { payment } = dependencies;
 
-  payment.tryPay(user, makePriceSatang(2));
+  const tryPayRes = await payment.tryPay(user, makePriceSatang(product.price));
 
-  return product;
+  return tryPayRes;
 }
 
-export function useUserBuysProduct() {
-  const paymentService = usePayment();
+export function useUserBuysProductUseCase() {
+  const paymentService: PaymentService = usePaymentAdapter();
 
   return (user: User, product: Product) =>
     userBuysProduct(user, product, { payment: paymentService });
